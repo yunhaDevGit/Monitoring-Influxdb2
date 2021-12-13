@@ -1,18 +1,3 @@
-<!--<!DOCTYPE html>-->
-<!--<html lang="en">-->
-<!--<head>-->
-<!--  <meta charset="utf-8">-->
-<!--  <title>Giraffe</title>-->
-<!--  <script crossorigin src="https://unpkg.com/react@17/umd/react.development.js"></script>-->
-<!--  <script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>-->
-<!--  <script crossorigin src="https://unpkg.com/@influxdata/giraffe"></script>-->
-<!--</head>-->
-
-<!--<body id="home">-->
-<!--<main id="root"></main>-->
-<!--</body>-->
-<!--</html>-->
-
 <html>
 <head>
   <title>Example: Flux Query Results visualized with Giraffe</title>
@@ -24,12 +9,12 @@
     // required by giraffe
     global = window
   </script>
+<!--  React, React-DOM, Firaffe 추가-->
   <script src="https://unpkg.com/react@17.0.0/umd/react.development.js"></script>
   <script src="https://unpkg.com/react-dom@17.0.0/umd/react-dom.development.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@influxdata/giraffe@0.41.0/dist/index.js"></script>
   <script src="https://unpkg.com/@influxdata/influxdb-client/dist/index.browser.js"></script>
   <script src="https://unpkg.com/@influxdata/influxdb-client-giraffe/dist/index.js"></script>
-  <!-- <script src="../packages/giraffe/dist/index.js"></script> -->
   <script src="/js/env_browser.js"></script>
 </head>
 <body>
@@ -42,16 +27,24 @@
   </div>
 </fieldset>
 <fieldset>
-  <legend>Giraffe Visualization</legend>
-  <div style="width: 100%;height: 200px; border: 1px solid grey; margin-bottom: 10px;" id="renderArea">
+  <legend>Graph Visualization</legend>
+  <div style="width: 100%;height: 500px; border: 1px solid grey; margin-bottom: 10px;" id="graphView">
   </div>
 </fieldset>
-<button id="reloadButton">Reload</button>
+<fieldset>
+  <legend>Heatmap Visualization</legend>
+  <div style="width: 100%;height: 500px; border: 1px solid grey; margin-bottom: 10px;" id="heatmapView">
+  </div>
+</fieldset>
 <script>
   // get query from request parameter or use default
+  // DB Connection 및 쿼리문 작성
   fluxQuery = new URLSearchParams(window.location.search).get('fluxQuery');
   if (!fluxQuery){
-    fluxQuery = `from(bucket:"cloudit") |> range(start: -12d) |> filter(fn: (r) => r._field == \"usage_system\" and r.cpu =~ /cpu[0-9*]/\n)`
+    // range(start: -15m) -> 지난 15분 동안의 데이터를 가져온다
+    fluxQuery = `from(bucket:"cloudit") |> range(start: -15m)   |> filter(fn: (r) => r["_measurement"] == "cpu")
+       |> filter(fn: (r) => r["_field"] == "usage_system")
+       |> filter(fn: (r) => r["cpu"] == "cpu0" or r["cpu"] == "cpu1" or r["cpu"] == "cpu2")`
   }
   const fluxQueryInput = document.getElementById('fluxQuery')
   fluxQueryInput.value =  fluxQuery
@@ -64,8 +57,13 @@
 
   // execute query and fill query data into giraffe table
   const giraffe = window['@influxdata/giraffe']
+
   // React functional component that renders query results or an error
-  function RenderResults({error, table}){
+  // 쿼리 요청 및 결과 giraffe에 매핑
+  // const NINETEEN_EIGHTY_FOUR = ['#31C0F6', '#A500A5', '#FF7E27']
+  // const NINETEEN_EIGHTY_FOUR = ['#31C0F6', '#A500A5', '#FF7E27']
+  
+  function graphRenderResults({error, table}){
     if (error){
       // render error message
       return React.createElement('center', null, error.toString())
@@ -76,12 +74,14 @@
         layers: [{
           type: 'line',
           x: '_time',
-          y: '_value'
+          y: '_value',
+          fill: [],
+          colors: ['#31C0F6', '#A500A5', '#FF7E27']
         }],
         valueFormatters: {
           _time: giraffe.timeFormatter({
-            timeZone: 'UTC',
-            format: 'YYYY-MM-DD HH:mm:ss ZZ',
+            timeZone: 'Asia/Seoul',
+            format: 'YYYY-MM-DD HH:mm:ss',
           }),
         }
       };
@@ -91,8 +91,37 @@
       return React.createElement('center', null, 'Empty Table Received')
     }
   }
+
+  function heatmapRenderResults({error, table}){
+    if (error){
+      // render error message
+      return React.createElement('center', null, error.toString())
+    } else if (table.length) {
+      // render giraffe plot
+      const heatmapConfig = {
+        table: table,
+        layers: [{
+          type: 'heatmap',
+          x: '_time',
+          y: '_value'
+        }],
+        valueFormatters: {
+          _time: giraffe.timeFormatter({
+            timeZone: 'Asia/Seoul',
+            format: 'YYYY-MM-DD HH:mm:ss',
+          }),
+        }
+      };
+      return React.createElement(giraffe.Plot, {config: heatmapConfig})
+    } else {
+      // render empty table recevied
+      return React.createElement('center', null, 'Empty Table Received')
+    }
+  }
+
   const influxDBClientGiraffe = window['@influxdata/influxdb-client-giraffe']
-  function queryAndVisualize() {
+  // graph 그리기
+  function queryAndVisualizeGraph() {
     influxDBClientGiraffe.queryToTable(
         queryApi,
         fluxQueryInput.value,
@@ -100,21 +129,56 @@
     ). then(table => {
       console.log('queryToTable returns', table)
       ReactDOM.render(
-          React.createElement(RenderResults, {table}),
-          document.getElementById('renderArea')
+          React.createElement(graphRenderResults, {table}),
+          document.getElementById('graphView')
       );
     }). catch(error => {
       console.log('queryToTable fails', error)
       ReactDOM.render(
-          React.createElement(RenderResults, {error}),
-          document.getElementById('renderArea')
+          React.createElement(graphRenderResults, {error}),
+          document.getElementById('graphView')
       );
     })
   }
-  queryAndVisualize()
-  document.getElementById('reloadButton').addEventListener('click', () => {
-    queryAndVisualize()
-  })
+
+  // heatmap 그리기
+  function queryAndVisualizeHeatMap() {
+    influxDBClientGiraffe.queryToTable(
+        queryApi,
+        fluxQueryInput.value,
+        giraffe.newTable
+    ). then(table => {
+      console.log('queryToTable returns', table)
+      ReactDOM.render(
+          React.createElement(heatmapRenderResults, {table}),
+          document.getElementById('heatmapView')
+      );
+    }). catch(error => {
+      console.log('queryToTable fails', error)
+      ReactDOM.render(
+          React.createElement(heatmapRenderResults, {error}),
+          document.getElementById('heatmapView')
+      );
+    })
+  }
+
+
+  let timerId1 = null;
+  let timerId2 = null;
+
+  function graphViewMonitoring() {
+    queryAndVisualizeGraph();
+    timerId1 = setInterval(queryAndVisualizeGraph, 10000);
+  }
+
+  function heatMapViewMonitoring() {
+    queryAndVisualizeHeatMap();
+    timerId2 = setInterval(queryAndVisualizeHeatMap, 10000);
+  }
+
+
+  graphViewMonitoring()
+  heatMapViewMonitoring()
 
 </script>
 </body>
