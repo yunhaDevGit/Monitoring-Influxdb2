@@ -152,9 +152,9 @@ Telegraf를 통해 수집한 메트릭 정보를 InfluxDB에 담은 후, 수집�
   ```
 
 
-9.  React 요소 연결
+9.  React 요소 연결 
 
-   @influxdb-client-giraffe 패키지에서는 `queryToTable`라는 InfluxDB V2의 쿼리 수행 후 Giraffe 시각화에 적합한 데이터를 테이블에 반환해주는 역할을 하는 함수를 제공한다. 
+    @influxdb-client-giraffe 패키지에서는 `queryToTable`라는 InfluxDB V2의 쿼리 수행 후 Giraffe 시각화에 적합한 데이터를 테이블에 반환해주는 역할을 하는 함수를 제공한다. 
 
     table 설정 및 렌더링
 
