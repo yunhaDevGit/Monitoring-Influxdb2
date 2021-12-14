@@ -2,6 +2,13 @@
 
 Telegraf + InfluxDB 설치 : [[Monitoring] telegraf + influxdb 2.1](https://github.com/yunhaDevGit/TIL/blob/main/Monitoring/TIL_211209_telegraf%2Binfluxdb.md) 
 
+Telegraf를 통해 수집한 메트릭 정보를 InfluxDB에 담은 후, 수집된 데이터를 조회하여 Giraffe 라이브러리를 사용하여 시각화합니다.
+(Giraffe는 InfluxDB 2.0 UI를 구현하는데 사용되는 React 기반 시각화 라이브러리입니다.)
+
+
+
+## Java Example
+
 1. Java Application 생성 (Build Tool : Gradle)
 
 ![Untitled](https://s3.us-west-2.amazonaws.com/secure.notion-static.com/c68b0c67-b20e-4405-ad47-333273b73b91/Untitled.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=AKIAT73L2G45EIPT3X45%2F20211214%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20211214T005518Z&X-Amz-Expires=86400&X-Amz-Signature=d61de670fe4f5ee734b66fb12c06892498490bbfd8af689db88299128286c4f9&X-Amz-SignedHeaders=host&response-content-disposition=filename%20%3D%22Untitled.png%22&x-id=GetObject)
@@ -57,3 +64,7 @@ Telegraf + InfluxDB 설치 : [[Monitoring] telegraf + influxdb 2.1](https://gith
       }
     }
     ```
+
+### References
+[1] Giraffe Github : https://github.com/influxdata/giraffe/tree/b2415f38cb9bd69733e138ead7f6ef8805864475
+[2] Giraffe Quick Start : https://www.npmjs.com/package/@influxdata/giraffe
