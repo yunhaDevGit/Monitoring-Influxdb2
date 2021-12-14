@@ -6,7 +6,7 @@ Telegraf + InfluxDB 설치 : [[Monitoring] telegraf + influxdb 2.1](https://www.
 
 ![Untitled](https://s3.us-west-2.amazonaws.com/secure.notion-static.com/c68b0c67-b20e-4405-ad47-333273b73b91/Untitled.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=AKIAT73L2G45EIPT3X45%2F20211214%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20211214T005518Z&X-Amz-Expires=86400&X-Amz-Signature=d61de670fe4f5ee734b66fb12c06892498490bbfd8af689db88299128286c4f9&X-Amz-SignedHeaders=host&response-content-disposition=filename%20%3D%22Untitled.png%22&x-id=GetObject)
 
-1. InfluxDB UI 접속 > Data > Client Libraries (Java) 선택
+2. InfluxDB UI 접속 > Data > Client Libraries (Java) 선택
 
 ![Untitled](https://s3.us-west-2.amazonaws.com/secure.notion-static.com/c940f2f2-abef-453d-ab7d-470b58d7c354/Untitled.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=AKIAT73L2G45EIPT3X45%2F20211214%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20211214T005529Z&X-Amz-Expires=86400&X-Amz-Signature=c55cc00f94466b84f48e7807a6213fa3fa56b9ee5b067bd67c6067ae170b8753&X-Amz-SignedHeaders=host&response-content-disposition=filename%20%3D%22Untitled.png%22&x-id=GetObject)
 
@@ -14,13 +14,13 @@ Telegraf + InfluxDB 설치 : [[Monitoring] telegraf + influxdb 2.1](https://www.
 
 해당 페이지를 참고하여 influxdb와 연동
 
-1. build.gradle에 dependency 추가
+3. build.gradle에 dependency 추가
     
     ```powershell
     implementation "com.influxdb:influxdb-client-java:3.1.0"
     ```
     
-2. 연동 후 read 구현
+4. 연동 후 read 구현
     
     ```java
     
