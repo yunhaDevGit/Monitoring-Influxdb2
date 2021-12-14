@@ -41,6 +41,12 @@
   <div style="width: 100%;height: 500px; border: 1px solid grey; margin-bottom: 10px;" id="histogramView">
   </div>
 </fieldset>
+
+<fieldset>
+  <legend>Scatter Visualization</legend>
+  <div style="width: 100%;height: 500px; border: 1px solid grey; margin-bottom: 10px;" id="scatterView">
+  </div>
+</fieldset>
 <script>
   // get query from request parameter or use default
   // DB Connection 및 쿼리문 작성
@@ -148,6 +154,33 @@
     }
   }
 
+  function scatterRenderResults({error, table}){
+    if (error){
+      // render error message
+      return React.createElement('center', null, error.toString())
+    } else if (table.length) {
+      // render giraffe plot
+      const scatterConfig = {
+        table: table,
+        layers: [{
+          type: 'scatter',
+          x: '_time',
+          y: '_value'
+        }],
+        valueFormatters: {
+          _time: giraffe.timeFormatter({
+            timeZone: 'Asia/Seoul',
+            format: 'YYYY-MM-DD HH:mm:ss',
+          }),
+        }
+      };
+      return React.createElement(giraffe.Plot, {config: scatterConfig})
+    } else {
+      // render empty table recevied
+      return React.createElement('center', null, 'Empty Table Received')
+    }
+  }
+
   const influxDBClientGiraffe = window['@influxdata/influxdb-client-giraffe']
   // graph 그리기
   function queryAndVisualizeLine() {
@@ -212,28 +245,56 @@
     })
   }
 
-  let timerId1 = null;
-  let timerId2 = null;
-  let timerId3 = null;
+  // scatter 그리기
+  function queryAndVisualizeScatter() {
+    influxDBClientGiraffe.queryToTable(
+        queryApi,
+        fluxQueryInput.value,
+        giraffe.newTable
+    ). then(table => {
+      console.log('queryToTable returns', table)
+      ReactDOM.render(
+          React.createElement(scatterRenderResults, {table}),
+          document.getElementById('scatterView')
+      );
+    }). catch(error => {
+      console.log('queryToTable fails', error)
+      ReactDOM.render(
+          React.createElement(scatterRenderResults, {error}),
+          document.getElementById('scatterView')
+      );
+    })
+  }
+  //
+  // let timerId1 = null;
+  // let timerId2 = null;
+  // let timerId3 = null;
 
   function graphViewMonitoring() {
     queryAndVisualizeLine();
-    timerId1 = setInterval(queryAndVisualizeLine, 10000);
+    setInterval(queryAndVisualizeLine, 10000);
   }
 
   function heatMapViewMonitoring() {
     queryAndVisualizeHeatMap();
-    timerId2 = setInterval(queryAndVisualizeHeatMap, 10000);
+    setInterval(queryAndVisualizeHeatMap, 10000);
   }
 
   function histogramViewMonitoring() {
     queryAndVisualizeHistogram();
-    timerId3 = setInterval(queryAndVisualizeHistogram, 10000);
+    setInterval(queryAndVisualizeHistogram, 10000);
+  }
+
+
+  function scatterViewMonitoring() {
+    queryAndVisualizeScatter();
+    setInterval(queryAndVisualizeScatter, 10000);
   }
 
   graphViewMonitoring()
   heatMapViewMonitoring()
   histogramViewMonitoring()
+  scatterViewMonitoring()
 
 </script>
 </body>
