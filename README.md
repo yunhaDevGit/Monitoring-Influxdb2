@@ -1,6 +1,6 @@
 # Monitoring-Influxdb2
 
-Telegraf + InfluxDB 설치 : [[Monitoring] telegraf + influxdb 2.1](Monitoring/TIL_211209_telegraf+influxdb.md) 
+Telegraf + InfluxDB 설치 : [[Monitoring] telegraf + influxdb 2.1](https://github.com/yunhaDevGit/TIL/blob/main/Monitoring/TIL_211209_telegraf%2Binfluxdb.md) 
 
 1. Java Application 생성 (Build Tool : Gradle)
 
