@@ -1,6 +1,6 @@
 # Monitoring-Influxdb2
 
-Telegraf + InfluxDB 설치 : [[Monitoring] telegraf + influxdb 2.1](https://www.notion.so/Monitoring-telegraf-influxdb-2-1-04baa86ab1b840a7a15591772f758513) 
+Telegraf + InfluxDB 설치 : [[Monitoring] telegraf + influxdb 2.1](Monitoring/TIL_211209_telegraf+influxdb.md) 
 
 1. Java Application 생성 (Build Tool : Gradle)
 
