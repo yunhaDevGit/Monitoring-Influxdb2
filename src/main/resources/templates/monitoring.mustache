@@ -28,7 +28,7 @@
 </fieldset>
 <fieldset>
   <legend>Graph Visualization</legend>
-  <div style="width: 100%;height: 500px; border: 1px solid grey; margin-bottom: 10px;" id="graphView">
+  <div style="width: 100%;height: 500px; border: 1px solid grey; margin-bottom: 10px;" id="lineView">
   </div>
 </fieldset>
 <fieldset>
@@ -63,18 +63,13 @@
   // execute query and fill query data into giraffe table
   const giraffe = window['@influxdata/giraffe']
 
-  // React functional component that renders query results or an error
-  // 쿼리 요청 및 결과 giraffe에 매핑
-  // const NINETEEN_EIGHTY_FOUR = ['#31C0F6', '#A500A5', '#FF7E27']
-  // const NINETEEN_EIGHTY_FOUR = ['#31C0F6', '#A500A5', '#FF7E27']
-  
-  function graphRenderResults({error, table}){
+  function lineRenderResults({error, table}){
     if (error){
       // render error message
       return React.createElement('center', null, error.toString())
     } else if (table.length) {
       // render giraffe plot
-      const plotConfig = {
+      const lineConfig = {
         table: table,
         layers: [{
           type: 'line',
@@ -90,7 +85,7 @@
           }),
         }
       };
-      return React.createElement(giraffe.Plot, {config: plotConfig})
+      return React.createElement(giraffe.Plot, {config: lineConfig})
     } else {
       // render empty table recevied
       return React.createElement('center', null, 'Empty Table Received')
@@ -155,7 +150,7 @@
 
   const influxDBClientGiraffe = window['@influxdata/influxdb-client-giraffe']
   // graph 그리기
-  function queryAndVisualizeGraph() {
+  function queryAndVisualizeLine() {
     influxDBClientGiraffe.queryToTable(
         queryApi,
         fluxQueryInput.value,
@@ -163,14 +158,14 @@
     ). then(table => {
       console.log('queryToTable returns', table)
       ReactDOM.render(
-          React.createElement(graphRenderResults, {table}),
-          document.getElementById('graphView')
+          React.createElement(lineRenderResults, {table}),
+          document.getElementById('lineView')
       );
     }). catch(error => {
       console.log('queryToTable fails', error)
       ReactDOM.render(
-          React.createElement(graphRenderResults, {error}),
-          document.getElementById('graphView')
+          React.createElement(lineRenderResults, {error}),
+          document.getElementById('lineView')
       );
     })
   }
@@ -222,8 +217,8 @@
   let timerId3 = null;
 
   function graphViewMonitoring() {
-    queryAndVisualizeGraph();
-    timerId1 = setInterval(queryAndVisualizeGraph, 10000);
+    queryAndVisualizeLine();
+    timerId1 = setInterval(queryAndVisualizeLine, 10000);
   }
 
   function heatMapViewMonitoring() {
