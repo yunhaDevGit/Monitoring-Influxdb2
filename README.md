@@ -1,4 +1,4 @@
-# Monitoring-Influxdb2
+# Telegraf - InfluxDB v2 - Javascript
 
 Telegraf + InfluxDB 설치 : [[Monitoring] telegraf + influxdb 2.1](https://github.com/yunhaDevGit/TIL/blob/main/Monitoring/TIL_211209_telegraf%2Binfluxdb.md) 
 
