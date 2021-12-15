@@ -22,12 +22,11 @@
 <fieldset>
   <legend>Flux Query</legend>
   <div style="display:flex; margin-bottom: 10px;">
-        <textarea id="fluxQuery" style="flex: 1" rows="2"
-        >from(bucket:"my-bucket") |> range(start: -1d) |> filter(fn: (r) => r._measurement == "temperature")</textarea>
+        <textarea id="fluxQuery" style="flex: 1" rows="2"></textarea>
   </div>
 </fieldset>
 <fieldset>
-  <legend>Graph Visualization</legend>
+  <legend>Line Visualization</legend>
   <div style="width: 100%;height: 500px; border: 1px solid grey; margin-bottom: 10px;" id="lineView">
   </div>
 </fieldset>

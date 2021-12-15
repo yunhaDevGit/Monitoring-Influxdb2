@@ -2,15 +2,15 @@ window.INFLUX_ENV = {
   /** InfluxDB v2 URL, '/influxdb' relies upon proxy to forward to the target influxDB */
   url: 'http://192.168.120.6:8086',
   /** InfluxDB authorization token */
-  token: '-__8vAz2r4iDK-dx03d3JyXTf_CWHVUzsOnWlUEYaWqw71PBKJO4xgveJCvgcnvC1IndYad894u8FkmTqFRKeQ==',
+  token: '{token}',
   /** InfluxDB organization */
-  org: 'cloudit',
+  org: '{organization}',
   /** InfluxDB bucket used for onboarding and write requests. */
-  bucket: 'cloudit',
+  bucket: '{bucket}',
 
   /** The following properties are used ONLY in the onboarding example */
   /** InfluxDB user  */
-  username: 'cloudit',
+  username: '{username}',
   /** InfluxDB password  */
-  password: 'qwe1212!Q',
+  password: '{password}',
 }
