@@ -7,10 +7,14 @@ import com.influxdb.client.WriteApiBlocking;
 import com.influxdb.client.domain.WritePrecision;
 import com.influxdb.client.write.Point;
 import com.influxdb.exceptions.InfluxException;
+import com.influxdb.query.FluxRecord;
+import com.influxdb.query.FluxTable;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,47 +24,70 @@ import org.springframework.web.bind.annotation.PostMapping;
 @RequiredArgsConstructor
 public class MonitoringController {
 
-  String token = "6cpMVgC-vMzXs1eKAUOaRtk8y3kGcJsWJDFVglB4HW7ljLP09HhWbb7VhO54dJ9AvBkR4hIqTHWMVkTa2PaU3Q==";
-  String bucket = "testCRUD";
-  String org = "test";
+  @Value("${influx.org}")
+  private String org;
 
-  InfluxDBClient client = InfluxDBClientFactory.create("http://localhost:8086", token.toCharArray());
+  @Value("${influx.bucket}")
+  private String bucket;
+
+  @Value("${influx.url}")
+  private String url;
+
+  @Value("${influx.token}")
+  private String token;
+
+  private InfluxDBClient influxDBClient;
 
   @GetMapping("/view/monitoring")
   public String getMonitoringPage() {
     return "monitoring";
   }
 
-  @GetMapping("/")
-  public String readInfluxDBData() {
+  @GetMapping("/read/data")
+  public void readInfluxDBData() {
+    influxDBClient = InfluxDBClientFactory.create(url, token.toCharArray());
 
-    return "";
+    String query = "from(bucket: \"" + bucket + "\") |> range(start: -1h) |> filter(fn: (r) => r[\"_measurement\"] == \"mem\")";
+    List<FluxTable> tables = influxDBClient.getQueryApi().query(query, org);
+
+    for (FluxTable table : tables) {
+      for (FluxRecord record : table.getRecords()) {
+        System.out.println(record.getValue());
+      }
+    }
+
+    influxDBClient.close();
   }
 
   @PostMapping("/write/data")
-  public String writeInfluxDBData() {
+  public void writeInfluxDBData() {
+    influxDBClient = InfluxDBClientFactory.create(url, token.toCharArray());
+
     Point point = Point
         .measurement("mem")
         .addTag("host", "host1")
-        .addField("used_percent", 23.43234543)
+        .addField("used_percent", 345.4564)
         .time(Instant.now(), WritePrecision.NS);
-    WriteApiBlocking writeApi = client.getWriteApiBlocking();
+    WriteApiBlocking writeApi = influxDBClient.getWriteApiBlocking();
     writeApi.writePoint(bucket, org, point);
 
-    return "";
+    influxDBClient.close();
   }
 
   @DeleteMapping("/delete/data")
   public void deleteInfluxDBData() {
-    DeleteApi deleteApi = client.getDeleteApi();
+    influxDBClient = InfluxDBClientFactory.create(url, token.toCharArray());
+    DeleteApi deleteApi = influxDBClient.getDeleteApi();
 
     try {
 
-      OffsetDateTime start = OffsetDateTime.now().minus(1, ChronoUnit.HOURS);
+      // 현지 시간~5분 전에 들어온 데이터 삭제
+      OffsetDateTime start = OffsetDateTime.now().minus(5, ChronoUnit.MINUTES);
       OffsetDateTime stop = OffsetDateTime.now();
 
       deleteApi.delete(start, stop, "", "testCRUD", "test");
 
+      influxDBClient.close();
     } catch (InfluxException ie) {
       System.out.println("InfluxException: " + ie);
     }
