@@ -11,6 +11,7 @@ Telegraf를 통해 수집한 메트릭 정보를 InfluxDB에 담은 후, 수집�
 - InflxuDB 2.1.1
 - telegraf
 - docker
+- WebSocket
 
 
 ## Quick Start
