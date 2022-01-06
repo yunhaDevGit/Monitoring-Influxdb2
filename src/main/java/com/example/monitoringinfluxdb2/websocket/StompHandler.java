@@ -1,8 +1,5 @@
 package com.example.monitoringinfluxdb2.websocket;
 
-import com.example.monitoringinfluxdb2.controller.MonitoringController;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
@@ -11,7 +8,6 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class StompHandler extends ChannelInterceptorAdapter {
-  private static final Logger logger = LoggerFactory.getLogger(StompHandler.class);
 
   @Override
   public void postSend(Message message, MessageChannel channel, boolean sent) {

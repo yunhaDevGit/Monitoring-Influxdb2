@@ -8,7 +8,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class WebConfig implements WebMvcConfigurer {
   @Override
   public void addCorsMappings(CorsRegistry registry) {
-    // 콘트롤러의 경로를 /api/* 로 만들거기 떄문에 그 경로만 허용한다
+    // controller 경로를 /api/* 로 만들거기 떄문에 그 경로만 허용한다
     registry
         .addMapping("/monitoring/**")
         .allowedOrigins("http://192.168.120.6:3000");
