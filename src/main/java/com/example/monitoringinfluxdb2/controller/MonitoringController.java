@@ -1,95 +1,85 @@
 package com.example.monitoringinfluxdb2.controller;
 
-import com.influxdb.client.DeleteApi;
-import com.influxdb.client.InfluxDBClient;
-import com.influxdb.client.InfluxDBClientFactory;
-import com.influxdb.client.WriteApiBlocking;
-import com.influxdb.client.domain.WritePrecision;
-import com.influxdb.client.write.Point;
-import com.influxdb.exceptions.InfluxException;
-import com.influxdb.query.FluxRecord;
-import com.influxdb.query.FluxTable;
-import java.time.Instant;
-import java.time.OffsetDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.List;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
+import com.example.monitoringinfluxdb2.service.MonitoringService;
+import com.example.monitoringinfluxdb2.websocket.SendingMessageFacadeAbstract;
+import com.google.gson.Gson;
+import java.util.HashMap;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.util.MimeTypeUtils;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
-@RequiredArgsConstructor
 public class MonitoringController {
+  private static final Logger logger = LoggerFactory.getLogger(MonitoringController.class);
 
-  @Value("${influx.org}")
-  private String org;
+  @Autowired
+  private SimpMessagingTemplate simpMessagingTemplate;
 
-  @Value("${influx.bucket}")
-  private String bucket;
+  @Autowired
+  private MonitoringService monitoringService;
 
-  @Value("${influx.url}")
-  private String url;
-
-  @Value("${influx.token}")
-  private String token;
-
-  private InfluxDBClient influxDBClient;
-
-  @GetMapping("/view/monitoring")
+  @GetMapping("/view")
   public String getMonitoringPage() {
     return "monitoring";
   }
 
-  @GetMapping("/read/data")
-  public void readInfluxDBData() {
-    influxDBClient = InfluxDBClientFactory.create(url, token.toCharArray());
+  @GetMapping("/api/test")
+  @ResponseBody
+  public HashMap hello(@RequestParam("hi") String hi) {
+    HashMap result = new HashMap();
+    result.put("message", hi);
 
-    String query = "from(bucket: \"" + bucket + "\") |> range(start: -1h) |> filter(fn: (r) => r[\"_measurement\"] == \"mem\")";
-    List<FluxTable> tables = influxDBClient.getQueryApi().query(query, org);
+    return result;
+  }
 
-    for (FluxTable table : tables) {
-      for (FluxRecord record : table.getRecords()) {
-        System.out.println(record.getValue());
-      }
+  @GetMapping("/test/view")
+  public String getTestPage() {
+    return "test";
+  }
+
+
+  @MessageMapping("/graph") // /app/monitoring/graph
+//  @SendTo("/topic/cpuUtilization")
+  public void cpuMonitoringGraph() throws ParseException {
+    SendingMessage sendingMessage = new SendingMessage(simpMessagingTemplate);
+    sendingMessage.setDestination("/topic/cpuUtilization/");
+    sendingMessage.start();
+
+
+    Object switchStructureInfoList;
+    JSONObject jsonObject = new JSONObject();
+    switchStructureInfoList = monitoringService.getMonitoringData();
+    jsonObject.put("switchStructureInfoList",
+        new JSONParser().parse(new Gson().toJson(switchStructureInfoList)));
+
+    SimpMessageHeaderAccessor accessor = SimpMessageHeaderAccessor.create();
+    accessor.setContentType(MimeTypeUtils.APPLICATION_JSON);
+    simpMessagingTemplate.convertAndSend("/topic/cpuUtilization", jsonObject, accessor.getMessageHeaders());
+  }
+
+  private class SendingMessage extends SendingMessageFacadeAbstract {
+
+    public SendingMessage(SimpMessagingTemplate simpMessagingTemplate) {
+      super(simpMessagingTemplate, monitoringService);
     }
 
-    influxDBClient.close();
-  }
-
-  @PostMapping("/write/data")
-  public void writeInfluxDBData() {
-    influxDBClient = InfluxDBClientFactory.create(url, token.toCharArray());
-
-    Point point = Point
-        .measurement("mem")
-        .addTag("host", "host1")
-        .addField("used_percent", 345.4564)
-        .time(Instant.now(), WritePrecision.NS);
-    WriteApiBlocking writeApi = influxDBClient.getWriteApiBlocking();
-    writeApi.writePoint(bucket, org, point);
-
-    influxDBClient.close();
-  }
-
-  @DeleteMapping("/delete/data")
-  public void deleteInfluxDBData() {
-    influxDBClient = InfluxDBClientFactory.create(url, token.toCharArray());
-    DeleteApi deleteApi = influxDBClient.getDeleteApi();
-
-    try {
-
-      // 현지 시간~5분 전에 들어온 데이터 삭제
-      OffsetDateTime start = OffsetDateTime.now().minus(5, ChronoUnit.MINUTES);
-      OffsetDateTime stop = OffsetDateTime.now();
-
-      deleteApi.delete(start, stop, "", "testCRUD", "test");
-
-      influxDBClient.close();
-    } catch (InfluxException ie) {
-      System.out.println("InfluxException: " + ie);
+    public void run() {
+      try {
+        _sendingMessage(false);
+      } catch (Exception e) {
+        logger.debug("SendingMessage ERROR ::::::::::::::: {}", e.getMessage());
+      }
     }
   }
 }
