@@ -38,23 +38,34 @@ public abstract class SendingMessageFacadeAbstract extends Thread {
     this.websocketSessionId = websocketSessionId;
   }
 
-  public SendingMessageFacadeAbstract(SimpMessagingTemplate simpMessagingTemplate, MonitoringService monitoringService) throws NullPointerException {
+  public SendingMessageFacadeAbstract(String websocketSessionId, SimpMessagingTemplate simpMessagingTemplate, MonitoringService monitoringService) throws NullPointerException {
+    this.websocketSessionId = websocketSessionId;
     this.simpMessagingTemplate = simpMessagingTemplate;
     this.monitoringService = monitoringService;
   }
 
   protected void _sendingMessage(boolean stop) {
 
+    long pullingTime = 0l;
     try{
-      JSONObject jsonObject = new JSONObject();
-      switchStructureInfoList = monitoringService.getMonitoringData();
-      jsonObject.put("switchStructureInfoList",
-          new JSONParser().parse(new Gson().toJson(switchStructureInfoList)));
+      while (!stop) {
+        JSONObject jsonObject = new JSONObject();
+        pullingTime += 1000l;
 
-      SimpMessageHeaderAccessor accessor = SimpMessageHeaderAccessor.create();
-      accessor.setContentType(MimeTypeUtils.APPLICATION_JSON);
-      simpMessagingTemplate.convertAndSend("/topic/cpuUtilization", jsonObject, accessor.getMessageHeaders());
+        // 5초마다 influxdb에서 데이터를 불러와서 client에게 반환
+        if (pullingTime >= (1000l * 5l)) {
+          switchStructureInfoList = monitoringService.getMonitoringData();
+          jsonObject.put("switchStructureInfoList",
+              new JSONParser().parse(new Gson().toJson(switchStructureInfoList)));
 
+          SimpMessageHeaderAccessor accessor = SimpMessageHeaderAccessor.create();
+          accessor.setContentType(MimeTypeUtils.APPLICATION_JSON);
+          simpMessagingTemplate.convertAndSend("/topic/cpuUtilization", jsonObject,
+              accessor.getMessageHeaders());
+          pullingTime = 0l;
+        }
+        sleep((monitoringCycle * 1000l));
+      }
     } catch (MessagingException me) {
       logger.error("ERROR [MessagingException] :::::: {}", me.getMessage());
       WebsocketUtils.removedThread(websocketSessionId);

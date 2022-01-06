@@ -4,12 +4,16 @@ import com.example.monitoringinfluxdb2.service.MonitoringService;
 import com.example.monitoringinfluxdb2.websocket.SendingMessageFacadeAbstract;
 import com.google.gson.Gson;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.handler.annotation.Headers;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -22,6 +26,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 public class MonitoringController {
   private static final Logger logger = LoggerFactory.getLogger(MonitoringController.class);
+  public static final ConcurrentHashMap<String, SendingMessageFacadeAbstract> sendingMessageFacadeAbstractConcurrentHashMap = new ConcurrentHashMap<String, SendingMessageFacadeAbstract>();
 
   @Autowired
   private SimpMessagingTemplate simpMessagingTemplate;
@@ -51,27 +56,19 @@ public class MonitoringController {
 
   @MessageMapping("/graph") // /app/monitoring/graph
 //  @SendTo("/topic/cpuUtilization")
-  public void cpuMonitoringGraph() throws ParseException {
-    SendingMessage sendingMessage = new SendingMessage(simpMessagingTemplate);
+  public void cpuMonitoringGraph(@Headers Map headersMap) throws ParseException {
+    String secWebsocketKey = (String) headersMap.get("simpSessionId");
+    SendingMessage sendingMessage = new SendingMessage(secWebsocketKey, simpMessagingTemplate);
     sendingMessage.setDestination("/topic/cpuUtilization/");
     sendingMessage.start();
+    sendingMessageFacadeAbstractConcurrentHashMap.put(secWebsocketKey, sendingMessage);
 
-
-    Object switchStructureInfoList;
-    JSONObject jsonObject = new JSONObject();
-    switchStructureInfoList = monitoringService.getMonitoringData();
-    jsonObject.put("switchStructureInfoList",
-        new JSONParser().parse(new Gson().toJson(switchStructureInfoList)));
-
-    SimpMessageHeaderAccessor accessor = SimpMessageHeaderAccessor.create();
-    accessor.setContentType(MimeTypeUtils.APPLICATION_JSON);
-    simpMessagingTemplate.convertAndSend("/topic/cpuUtilization", jsonObject, accessor.getMessageHeaders());
   }
 
   private class SendingMessage extends SendingMessageFacadeAbstract {
 
-    public SendingMessage(SimpMessagingTemplate simpMessagingTemplate) {
-      super(simpMessagingTemplate, monitoringService);
+    public SendingMessage(String websocketSessionId, SimpMessagingTemplate simpMessagingTemplate) {
+      super(websocketSessionId, simpMessagingTemplate, monitoringService);
     }
 
     public void run() {

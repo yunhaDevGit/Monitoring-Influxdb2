@@ -21,7 +21,7 @@
         console.log('Connected: ' + frame);
         stompClient.subscribe('/topic/cpuUtilization', function(message) {
           console.log(message.body);
-          showMessageOutput(JSON.parse(messageOutput.body));
+          showMessageOutput(JSON.parse(message.body));
         });
       });
     }
@@ -43,8 +43,7 @@
       var response = document.getElementById('response');
       var p = document.createElement('p');
       p.style.wordWrap = 'break-word';
-      p.appendChild(document.createTextNode(messageOutput.from + ": "
-          + messageOutput.text + " (" + messageOutput.time + ")"));
+      p.appendChild(document.createTextNode(JSON.stringify(messageOutput.switchStructureInfoList[0].records[0])));
       response.appendChild(p);
     }
   </script>
