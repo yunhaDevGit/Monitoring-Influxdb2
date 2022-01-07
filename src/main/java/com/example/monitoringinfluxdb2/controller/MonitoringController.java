@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.Headers;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -46,14 +47,20 @@ public class MonitoringController {
     return "test";
   }
 
+  @MessageMapping("/text")
+  @SendTo("/topic/messages")
+  public String getMessage(String text){
+    System.out.println(text+"---------------------------------");
+    return "hello";
+  }
 
   @MessageMapping("/graph")
   public void cpuMonitoringGraph(@Headers Map headersMap) {
-    String secWebsocketKey = (String) headersMap.get("simpSessionId");
-    SendingMessage sendingMessage = new SendingMessage(secWebsocketKey, simpMessagingTemplate);
+    String websocketId = (String) headersMap.get("simpSessionId");
+    SendingMessage sendingMessage = new SendingMessage(websocketId, simpMessagingTemplate);
     sendingMessage.setDestination("/topic/cpuUtilization/");
     sendingMessage.start();
-    sendingMessageFacadeAbstractConcurrentHashMap.put(secWebsocketKey, sendingMessage);
+    sendingMessageFacadeAbstractConcurrentHashMap.put(websocketId, sendingMessage);
 
   }
 
