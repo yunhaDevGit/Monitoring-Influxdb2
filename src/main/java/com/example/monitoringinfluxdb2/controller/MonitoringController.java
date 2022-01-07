@@ -2,6 +2,7 @@ package com.example.monitoringinfluxdb2.controller;
 
 import com.example.monitoringinfluxdb2.service.MonitoringService;
 import com.example.monitoringinfluxdb2.websocket.SendingMessageFacadeAbstract;
+import com.example.monitoringinfluxdb2.websocket.WebsocketUtils;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -20,7 +21,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 public class MonitoringController {
   private static final Logger logger = LoggerFactory.getLogger(MonitoringController.class);
-  public static final ConcurrentHashMap<String, SendingMessageFacadeAbstract> sendingMessageFacadeAbstractConcurrentHashMap = new ConcurrentHashMap<String, SendingMessageFacadeAbstract>();
+  //public static final ConcurrentHashMap<String, SendingMessageFacadeAbstract> sendingMessageFacadeAbstractConcurrentHashMap = new ConcurrentHashMap<String, SendingMessageFacadeAbstract>();
+  public static final ConcurrentHashMap<String, SendingMessageFacadeAbstract> sendingMessageFacadeAbstractConcurrentHashMap = WebsocketUtils.sendingMessageFacadeAbstractConcurrentHashMap;
 
   @Autowired
   private SimpMessagingTemplate simpMessagingTemplate;

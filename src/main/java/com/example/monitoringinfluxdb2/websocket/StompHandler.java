@@ -21,7 +21,7 @@ public class StompHandler implements ChannelInterceptor {
       case DISCONNECT:
         System.out.println("disconnect");
         // 유저가 Websocket으로 disconnect() 를 한 뒤 호출됨 or 세션이 끊어졌을 때 발생함(페이지 이동~ 브라우저 닫기 등)
-
+        WebsocketUtils.removedThread(sessionId);
         break;
       default:
         break;
