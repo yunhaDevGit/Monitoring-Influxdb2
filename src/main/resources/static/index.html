@@ -21,7 +21,7 @@
         console.log('Connected: ' + frame);
         stompClient.subscribe('/topic/cpuUtilization', function(message) {
           console.log(message.body);
-          showMessageOutput(JSON.parse(message.body));
+          showMessageOutput(message.body);
         });
       });
     }
@@ -36,7 +36,7 @@
 
     function sendMessage() {
       var text = "hi";
-      stompClient.send("/app/graph", {}, text);
+      stompClient.send("/app/graph", {});
     }
 
     function showMessageOutput(messageOutput) {

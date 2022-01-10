@@ -19,7 +19,7 @@ public abstract class SendingMessageFacadeAbstract extends Thread {
   private String websocketSessionId;
   private SimpMessagingTemplate simpMessagingTemplate;
   private MonitoringService monitoringService;
-  private Object switchStructureInfoList;
+  private Object cpuUtilization;
   private long monitoringCycle = 1;
 
   public void setDestination(String destination) {
@@ -54,13 +54,13 @@ public abstract class SendingMessageFacadeAbstract extends Thread {
 
         // 5초마다 influxdb에서 데이터를 불러와서 client에게 반환
         if (pullingTime >= (1000l * 5l)) {
-          switchStructureInfoList = monitoringService.getMonitoringData();
-          jsonObject.put("switchStructureInfoList",
-              new JSONParser().parse(new Gson().toJson(switchStructureInfoList)));
+          cpuUtilization = monitoringService.getMonitoringData();
+//          jsonObject.put("cpuUtilization",
+//              new JSONParser().parse(new Gson().toJson(cpuUtilization)));
 
           SimpMessageHeaderAccessor accessor = SimpMessageHeaderAccessor.create();
           accessor.setContentType(MimeTypeUtils.APPLICATION_JSON);
-          simpMessagingTemplate.convertAndSend("/topic/cpuUtilization", jsonObject,
+          simpMessagingTemplate.convertAndSend("/topic/cpuUtilization", cpuUtilization,
               accessor.getMessageHeaders());
           pullingTime = 0l;
         }

@@ -5,7 +5,11 @@ import com.influxdb.client.InfluxDBClientFactory;
 import com.influxdb.query.FluxRecord;
 import com.influxdb.query.FluxTable;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -35,20 +39,33 @@ public class MonitoringService {
 
     List<FluxTable> queryResult = influxDBClient.getQueryApi().query(query, org);
     if (queryResult != null) {
-//      return parseFromQueryResult( queryResult);
-      return queryResult;
+      return parseFromQueryResult( queryResult);
+//      return queryResult;
     }
     return null;
   }
 
-  public List<List<Object>> parseFromQueryResult(List<FluxTable> queryResult) {
+  public HashMap<String, List<Object>> parseFromQueryResult(List<FluxTable> queryResult) {
+
     List<List<Object>> datas = new ArrayList<>(new ArrayList<>());
+    String[] strings = {"result", "table", "_start", "_stop", "_time", "_value", "_field", "_measurement", "cpu", "host"};
+    HashMap<String, List<Object>>  map = new HashMap<>();
     for (FluxTable fluxTable : queryResult) {
       List<FluxRecord> records = fluxTable.getRecords();
-      for (FluxRecord fluxRecord : records) {
-//        datas = fluxRecord
+      int recordSize = fluxTable.getColumns().size();
+
+      for (int i=0;i<recordSize;i++){
+        ArrayList<Object> value = new ArrayList<>();
+        for (FluxRecord fluxRecord : records){
+          value.add(fluxRecord.getValueByIndex(i));
+          System.out.println("");
+        }
+        map.put(strings[i], value);
       }
     }
+
+    System.out.println(map);
+
 //    List<QueryResult.Result> results = queryResult.getResults();
 //    for (QueryResult.Result result : results) {
 //      if (result != null && !result.hasError() && result.getSeries() != null) {
@@ -58,6 +75,6 @@ public class MonitoringService {
 //        }
 //      }
 //    }
-    return datas;
+    return map;
   }
 }
